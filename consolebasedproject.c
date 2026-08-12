@@ -4,22 +4,25 @@
 
 struct Account
 {
-    double accNo;
+    int accNo;
     char name[30];
     float balance;
     int pin;
-}l1;
-
+}l1[20];
+int usercount = 0;
 void createAccount();
-void deposit();
-void withdraw();
-void displayAccount();
+void deposit(int currentlogin);
+void withdraw(int currentlogin);
+void displayAccount(int currentlogin);
 int login();
+void loadAccount();
+void saveAccount();
 
 int main()
 {
-     int currentlogin = 0;
+     int currentlogin = -1;
     int choice;
+    loadAccount();
          printf("\n================================================");
         printf("\n    WELCOME BANK MANAGEMENT SYSTEM          ");
 
@@ -33,7 +36,8 @@ int main()
         printf("\n3. Deposit Money");
         printf("\n4. Withdraw Money");
         printf("\n5. Display Account");
-        printf("\n6. Exit");
+        printf("\n6.Logout");
+        printf("\n7. Exit");
 
         printf("\n\nEnter your choice: ");
         scanf("%d", &choice);
@@ -41,11 +45,11 @@ int main()
         switch(choice)
         {
             case 1:
-                createAccount(currentlogin);
+                createAccount();
                 break;
 
             case 2:
-                  login();
+                  currentlogin=login();
                   break;
 
             case 3:
@@ -59,99 +63,139 @@ int main()
            
 
             case 5:
-                displayAccount();
+                displayAccount(currentlogin);
                 break;
 
             case 6:
+              currentlogin=-1;
+              printf("LOGOUT SUCCESSFULLY");
+              break;
+
+            case 7:
+                saveAccount();
                 printf("\nThank you!");
                 exit(0);
 
             default:
-                printf("\nInvalid choice!");
+                printf("\nInvalid choice! ");
         }
     }
 
     return 0;
 }
- void createAccount(int currentlogin){
+void saveAccount()
+{
+    FILE *fp;
+
+    fp = fopen("accounts.txt", "w");
+
+    if(fp == NULL)
+    {
+        printf("\nFile not open");
+        return;
+    }
+
+    for(int i = 0; i < usercount; i++)
+    {
+        fprintf(fp, "%d %s %f %d\n",l1[i].accNo,l1[i].name,l1[i].balance,l1[i].pin);
+    }
+
+    fclose(fp);
+
+    printf("\nAccount data saved successfully!");
+}
+ void createAccount(){
+  if(usercount >= 20)
+{
+    printf("Account limit reached!");
+    return;
+}
 
   printf("\nEnter your Name:-  ");
-  scanf("%s",&l1.name);
+  scanf("%s",l1[usercount].name);
 
   printf("\nEnter the Account NO : - ");
-  scanf("%d",&l1.accNo);
+  scanf("%d",&l1[usercount].accNo);
   printf("\nSET A PIN :- ");
-  scanf("%d",&l1.pin);
+  scanf("%d",&l1[usercount].pin);
 
   printf("\nENTER BALANCE :- ");
-  scanf("%f",&l1.balance);
+  scanf("%f",&l1[usercount].balance);
 
   printf("\n--------YOUR ACCOUNT CREATED SUCCESSFULLY-----------\n");
 
-  printf("Name of the user:- %s\n",l1.name);
-  printf("ACCOUNT NO:- %d\n",l1.accNo);
-  printf("YOUR BALANCE:- %f\n",l1.balance);
+  printf("Name of the user:- %s\n",l1[usercount].name);
+  printf("ACCOUNT NO:- %d\n",l1[usercount].accNo);
+  printf("YOUR BALANCE:- %f\n",l1[usercount].balance);
+
+  usercount++;
  }
  int login(){
 
-  double  acc_input;
+  int  acc_input;
   int acc_pin;
 
   printf("\nPlease Enter Your Account Number:- ");
   scanf("%d",&acc_input);
 
-  printf("%d\n%d ",l1.accNo,acc_input);
-  if(l1.accNo==acc_input){
+for(int i = 0;i < usercount;i++ ){
+
+  
+  if(l1[i].accNo==acc_input){
      
   printf("\nEnter the pin:- ");
   scanf("%d",&acc_pin);
 
-   if(l1.pin==acc_pin){
+   if(l1[i].pin==acc_pin){
     printf("\n-------------------LOGIN SUCCESSFULLY------------------------------");
-    printf("\nWelcome %s",l1.name);
-  return 1;
+    printf("\nWelcome %s",l1[i].name);
+  return i;
 
    }
    else{
     printf("\n------------------------INVALID PIN----------------");
+    return -1;
    }
-  }else{
-    printf("\n-----------------------INVALID USER------------------------");
   }
-  return 0;
+  }
+    printf("\n-----------------------INVALID USER------------------------");
+    return -1;
+  
+
+
  }
 
  void deposit(int currentlogin){
-  if(currentlogin==0){
-    printf("please Login first ")
+  if(currentlogin==-1){
+    printf("please Login first ");
   }else{
-   int  amount;
+   float  amount;
   printf("\nEnter the Amount you want to deposite :- ");
-  scanf("%d",&amount);
+  scanf("%f",&amount);
 
   printf("\nAmmount Deposited Successfully");
 
-  l1.balance = l1.balance + amount;
+  l1[currentlogin].balance = l1[currentlogin].balance + amount;
 
-  printf("\nYour Balance is :- %f ",l1.balance);
+  printf("\nYour Balance is :- %f ",l1[currentlogin].balance);
 
   
  }}
- void withdraw(currentlogin){
-  int amount;
-  if(currentlogin==0){
+ void withdraw(int currentlogin){
+  float amount;
+  if(currentlogin==-1){
     printf("login First");
   }else{
   printf("\nEnter the ammount you want to withdraw :- ");
-  scanf("%d",&amount);
+  scanf("%f",&amount);
 
-  if(amount > l1.balance ){
+  if(amount > l1[currentlogin].balance ){
     printf("ISUFFICIENT BALANCE");
   }
   else{
 
-  l1.balance = l1.balance - amount;
-  printf("\nYour Remaining Balance Is :- %f ",l1.balance);
+  l1[currentlogin].balance = l1[currentlogin].balance - amount;
+  printf("\nYour Remaining Balance Is :- %f ",l1[currentlogin].balance);
 
 
 
@@ -160,13 +204,36 @@ int main()
 
  }
 
- void displayAccount(){
+ void displayAccount(int currentlogin){
 
   printf("\n------------------------SBI------------------------------\n");
 
-
-  printf("\nThe name of User:- %s",l1.name);
-   printf("\nCurrent balance in your Account is:- %f\n",l1.balance);
+if(currentlogin==-1){
+  printf("\nLogin First");
+}else{
+  printf("\nThe name of User:- %s",l1[currentlogin].name);
+   printf("\nCurrent balance in your Account is:- %.2f\n",l1[currentlogin].balance);
+}
 
   printf("\n-----------------------------------THANK YOU SO MUCH------------------------------------------------");
  }
+
+ void loadAccount()
+{
+    FILE *fp;
+
+    fp = fopen("accounts.txt", "r");
+
+    if(fp == NULL)
+    {
+        printf("\nNo previous data found.");
+        return;
+    }
+
+    while(fscanf(fp, "%d %s %f %d", &l1[usercount].accNo,l1[usercount].name,&l1[usercount].balance, &l1[usercount].pin) == 4)
+    {
+        usercount++;
+    }
+
+    fclose(fp);
+}
